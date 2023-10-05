@@ -34,4 +34,5 @@ for _epoch in tqdm(range(n_epochs)):
         optimizer.zero_grad()
     train_loss.append(np.mean(train_loss_epoch))
 
-torch.save(model.state_dict(), "model")
+if __name__ == '__main__':
+    torch.save(model.state_dict(), "model")
