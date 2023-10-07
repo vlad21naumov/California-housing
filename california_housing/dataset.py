@@ -1,6 +1,7 @@
 import torch
 from sklearn.datasets import fetch_california_housing
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 from torch.utils.data import Dataset
 
 
@@ -8,6 +9,11 @@ dataset = fetch_california_housing()
 X = dataset.data
 y = dataset.target
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=True)
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train = scaler.transform(X_train)
+X_test = scaler.transform(X_test)
+
 X_train = torch.tensor(X_train, dtype=torch.float32)
 y_train = torch.tensor(y_train, dtype=torch.float32).reshape(-1, 1)
 X_test = torch.tensor(X_test, dtype=torch.float32)
