@@ -1,1 +1,1 @@
-California housing task with regression model. 
+Задача по предсказыванию стоимости жилья в Калифорнии.
