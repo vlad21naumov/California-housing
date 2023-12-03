@@ -1,0 +1,8 @@
+target_column: "Price"
+feature_columns: ["MedInc", "HouseAge", "AveRooms", "AveBedrms", "Population", "AveOccup", "Latitude", "Longitude"]
+
+train_dataset_path: "../data/train_data.csv"
+val_dataset_path: "../data/train_data.csv"
+test_dataset_path: "../data/test_data.csv"
+
+result_path: "../results/predictions.csv"
