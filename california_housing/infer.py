@@ -1,41 +1,35 @@
-import numpy as np
+import hydra
 import pandas as pd
 import torch
 from dataset import CaliforniaDataset
 from model import RegressionModel
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from transforms import normalize_data
+from omegaconf import DictConfig
 
 
-def main():
-    feature_names = [
-        'MedInc',
-        'HouseAge',
-        'AveRooms',
-        'AveBedrms',
-        'Population',
-        'AveOccup',
-        'Latitude',
-        'Longitude',
-    ]
-    train_dataset = CaliforniaDataset("../data/train_data.csv")
-    test_dataset = CaliforniaDataset("../data/test_data.csv")
-    _, test_dataset = normalize_data(train_dataset, test_dataset)
+@hydra.main(version_base=None, config_path="../conf", config_name="config")
+def main(config: DictConfig):
+    model_params = torch.load(config["model_params"]["saved_model_path"])
+
+    mean, std = model_params["params"]
+
+    test_dataset = CaliforniaDataset(config["data_loading"]["test_dataset_path"], config)
+    test_dataset.data = (test_dataset.data - mean) / std
+
     model = RegressionModel()
-    model.load_state_dict(torch.load("model"))
+
+    model.load_state_dict(model_params["model"])
+
     model.eval()
-    predictions = model(test_dataset.data)
+    with torch.no_grad():
+        predictions = model(test_dataset.data)
+        predictions = predictions.detach().cpu().numpy()
+        result = pd.DataFrame(
+            test_dataset.data.numpy(), columns=config["data_loading"]["feature_columns"]
+        )
+        result[config["data_loading"]["target_column"]] = predictions
 
-    predictions = predictions.detach().numpy()
-    result = pd.DataFrame(test_dataset.data, columns=feature_names)
-    result["Price"] = predictions
-
-    y_true = test_dataset.labels.reshape(-1, 1)
-    print(f"MSE: {np.round(mean_squared_error(predictions, y_true), 2)}")
-    print(f"MAE: {round(mean_absolute_error(predictions, y_true), 2)}")
-    print(f"R2 score: {round(r2_score(predictions, y_true), 2)}")
-    result.to_csv("predictions.csv")
+    result.to_csv(config["data_loading"]["result_path"])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
