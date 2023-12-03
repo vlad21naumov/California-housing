@@ -1,1 +1,2 @@
-saved_model_path: "../models/state_dict"
+saved_model_path: ../models/model.onnx
+saved_params_path: ../models/params_dict

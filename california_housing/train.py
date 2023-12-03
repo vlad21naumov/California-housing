@@ -71,10 +71,10 @@ def main(config: DictConfig):
             input.detach().cpu().numpy(), output.detach().cpu().numpy()
         )
 
-        torch.onnx.export(model, input, "model.onnx")
+        torch.onnx.export(model, input, config["model_params"]["saved_model_path"])
         mlflow.onnx.log_model(
-            onnx.load("model.onnx"),
-            "model",
+            onnx.load(config["model_params"]["saved_model_path"]),
+            config["logging"]["artifact_path"],
             registered_model_name=config["logging"]["model_name"],
             signature=model_signature,
         )

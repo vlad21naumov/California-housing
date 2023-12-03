@@ -4,3 +4,7 @@ experiment_name: base_model
 experiment_tag: base_model
 version: 0.0.1
 run_name: epochs_50_bs_50
+
+artifact_path: model
+
+run_id: 2feb7600fda5495688ec5af80247bcc8

@@ -1,2 +1,3 @@
 /model
-/state_dict
+/params_dict
+/model.onnx
