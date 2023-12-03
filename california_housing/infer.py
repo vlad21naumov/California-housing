@@ -1,23 +1,25 @@
 import hydra
+import mlflow
 import pandas as pd
 import torch
-from dataset import CaliforniaDataset
-from model import RegressionModel
 from omegaconf import DictConfig
+from onnx2torch.converter import convert
+
+from dataset import CaliforniaDataset
 
 
 @hydra.main(version_base=None, config_path="../conf", config_name="config")
 def main(config: DictConfig):
-    model_params = torch.load(config["model_params"]["saved_model_path"])
+    logged_model_path = f'runs:/{config["logging"]["run_id"]}/model'
+    onnx_model = mlflow.onnx.load_model(logged_model_path)
+    model = convert(onnx_model)
+
+    model_params = torch.load(config["model_params"]["saved_params_path"])
 
     mean, std = model_params["params"]
 
     test_dataset = CaliforniaDataset(config["data_loading"]["test_dataset_path"], config)
     test_dataset.data = (test_dataset.data - mean) / std
-
-    model = RegressionModel()
-
-    model.load_state_dict(model_params["model"])
 
     model.eval()
     with torch.no_grad():

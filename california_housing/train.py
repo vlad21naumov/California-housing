@@ -2,14 +2,17 @@ import os
 
 import hydra
 import mlflow
+import onnx
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from dataset import CaliforniaDataset
 from dvc.api import DVCFileSystem
-from model import RegressionModel
+from mlflow.models import infer_signature
 from omegaconf import DictConfig
 from torch.utils.data import DataLoader
+
+from dataset import CaliforniaDataset
+from model import RegressionModel
 from trainer import Trainer
 from transforms import normalize_data
 
@@ -64,23 +67,23 @@ def main(config: DictConfig):
         )
 
         log_params(config)
-        # model_signature = infer_signature(
-        #     input.detach().cpu().numpy(), output.detach().cpu().numpy()
-        # )
-        # print(input.shape)
-        # onnx_model = torch.onnx.export(model, input, "model.onnx")
-        # mlflow.onnx.log_model(
-        #     onnx_model,
-        #     "model",
-        #     # registered_model_name=config["logging"]["model_name"],
-        #     signature=model_signature,
-        # )
+        model_signature = infer_signature(
+            input.detach().cpu().numpy(), output.detach().cpu().numpy()
+        )
 
-    state_dict = {"model": model.state_dict(), "params": [mean, std]}
+        torch.onnx.export(model, input, "model.onnx")
+        mlflow.onnx.log_model(
+            onnx.load("model.onnx"),
+            "model",
+            registered_model_name=config["logging"]["model_name"],
+            signature=model_signature,
+        )
 
-    print("Saving model and params...")
-    torch.save(state_dict, config["model_params"]["saved_model_path"])
-    print("Model and params are saved!")
+    state_dict = {"params": [mean, std]}
+
+    print("Saving mean and std for inference...")
+    torch.save(state_dict, config["model_params"]["saved_params_path"])
+    print("Parametres are saved!")
 
     os.system("mlflow ui")
 
